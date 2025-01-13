@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useState, ReactNode } from "react";
 import { FileTypes } from "../App";
 
 interface FilePreviewContextProps {
@@ -86,10 +86,4 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useFilePreview = () => {
-  const context = useContext(FilePreviewContext);
-  if (!context) {
-    throw new Error("useFilePreview must be used within a FilePreviewProvider");
-  }
-  return context;
-};
+export default FilePreviewContext;

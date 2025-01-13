@@ -7,7 +7,7 @@ import "react-pdf/dist/Page/AnnotationLayer.css";
 import Loading from "./Loading";
 
 import "./ReactPdf.css";
-import { useFilePreview } from "./contexts/FilePreviewProvider";
+import { useFilePreview } from "./contexts/useFilePreview";
 
 interface PdfProps {
   src: File;

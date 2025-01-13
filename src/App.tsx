@@ -8,12 +8,12 @@ import styled from "@seaweb/coral/hoc/styled";
 import ReactPdf from "./ReactPdf";
 import PdfPreviewThumbnail from "./PdfPreviewThumbnail";
 import ImgPreviewThumbnail from "./ImgPreviewThumbnail";
-import {
-  FilePreviewProvider,
-  useFilePreview,
-} from "./contexts/FilePreviewProvider";
+import { FilePreviewProvider } from "./contexts/FilePreviewProvider";
 import Button from "@seaweb/coral/components/Button";
 import InputGroup from "@seaweb/coral/components/InputGroup";
+import { useFilePreview } from "./contexts/useFilePreview";
+import { ImgPreview } from "./ImgPreview";
+import ExpandableTable from "./ExpandableTable";
 // import PdfJs from "./PdfJs";
 
 export enum FileTypes {
@@ -40,6 +40,26 @@ const FileDisplayContainer = styled.div`
 function App() {
   return (
     <AppContainer>
+      <ExpandableTable
+        records={Array(3)
+          .fill(null)
+          .map((_, idx) => ({
+            city: "c",
+            description: "p",
+            author: "a",
+            new: "n",
+            id: idx,
+          }))}
+        keyOrder={["id", "city", "description", "new", "author"]}
+        columns={[
+          { label: "ID", width: 300 },
+          { label: "Origin", width: 300 },
+          { label: "Description", width: 300 },
+          { label: "new", width: 300 },
+          { label: "Author", width: 300 },
+        ]}
+        exRange={[1, 4]}
+      />
       <FilePreviewProvider>
         <FilePreviewActions />
       </FilePreviewProvider>
@@ -124,37 +144,31 @@ const FilePreviewActions = () => {
                   case FileTypes.Jpeg:
                   case FileTypes.Png:
                     return (
-                      <img
-                        src={URL.createObjectURL(selectedFile)}
-                        alt="Image preview"
-                        style={{
-                          objectFit: "contain",
-                        }}
-                      />
+                      <ImgPreview src={URL.createObjectURL(selectedFile)} />
                     );
                   case FileTypes.Pdf:
                     return (
                       <>
                         {/* <PdfObjectContainer>
-                <h2>{"<object/>/<iframe/>"}</h2>
-                {
-                  <object
-                    title="Sample PDF document"
-                    type="application/pdf"
-                    data={URL.createObjectURL(file)}
-                    width="100%"
-                    height="100%"
-                  >
-                    Sorry, your browser doesn't support PDF preview.{" "}
-                    <a
-                      href={URL.createObjectURL(file)}
-                      download={file.name}
-                    >
-                      Download
-                    </a>
-                  </object>
-                }
-              </PdfObjectContainer> */}
+                            <h2>{"<object/>/<iframe/>"}</h2>
+                            {
+                              <object
+                                title="Sample PDF document"
+                                type="application/pdf"
+                                data={URL.createObjectURL(file)}
+                                width="100%"
+                                height="100%"
+                              >
+                                Sorry, your browser doesn't support PDF preview.{" "}
+                                <a
+                                  href={URL.createObjectURL(file)}
+                                  download={file.name}
+                                >
+                                  Download
+                                </a>
+                              </object>
+                            }
+                          </PdfObjectContainer> */}
                         <h2>{"<PdfJs/>"}</h2>
                         {<ReactPdf src={selectedFile} />}
                         {/* {files.length > 0 && <PdfJs src={URL.createObjectURL(files[0])} />} */}
