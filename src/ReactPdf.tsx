@@ -37,7 +37,6 @@ const ReactPdf: React.FC<PdfProps> = ({ src }) => {
     }
   };
 
-  console.log(src);
   return (
     <div
       style={{

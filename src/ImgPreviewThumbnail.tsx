@@ -23,7 +23,6 @@ const ImgPreviewThumbnail = ({
   width?: number;
   height?: number;
 }) => {
-  console.log(file);
   return (
     <ImgThumbnailWrapper $height={height} $width={width}>
       <img

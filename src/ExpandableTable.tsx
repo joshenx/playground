@@ -1,19 +1,47 @@
-import IconButton from "@seaweb/coral/components/IconButton";
 import {
-  TableContainer,
   Table,
-  TableHead,
   TableBody,
-  TableRow,
   TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from "@seaweb/coral/components/Table";
-import { useState } from "react";
-import ChevronDoubleLeft from "@seaweb/coral/icons/ChevronDoubleLeft";
-import ChevronDoubleRight from "@seaweb/coral/icons/ChevronDoubleRight";
+import { CSSProperties, HTMLAttributes, useState } from "react";
+import ExpandedHeaderIcon from "./ExpandedHeaderIcon";
 
 type ExpandedRange = [number, number];
 
-export default function ExpandableTable<T extends object>({
+interface ExpandButtonProps extends HTMLAttributes<HTMLDivElement> {
+  toggleExpanded: () => void;
+  isExpanded: boolean;
+  additionalStyles?: CSSProperties;
+}
+const ExpandButton = ({
+  toggleExpanded,
+  isExpanded,
+  additionalStyles,
+  ...props
+}: ExpandButtonProps) => {
+  return (
+    <div
+      {...props}
+      onClick={toggleExpanded}
+      style={{
+        height: "100%",
+        position: "absolute",
+        top: "0",
+        transform: `translateX(-100%) rotate(${isExpanded ? 180 : 0}deg)`,
+        zIndex: "2",
+        cursor: "pointer",
+        ...additionalStyles,
+      }}
+    >
+      <ExpandedHeaderIcon />
+    </div>
+  );
+};
+
+function ExpandableTable<T extends object>({
   records,
   keyOrder,
   columns,
@@ -28,11 +56,20 @@ export default function ExpandableTable<T extends object>({
    * The order of columns, with their respective labels and widths
    */
   columns: { label: string; width: number }[];
-  /** exRange[0] needs to be more than 0
-   * exRange is also a pair [x, y], where columns x, x+1, ... y-1 will be expandable.
+  /**
+   * @description exRange is also a pair [x, y], where columns x, x+1, ... y-1 will be expandable.
+   * exRange[0] needs to be more than 0.
    */
   exRange: ExpandedRange;
 }) {
+  if (columns.length !== keyOrder.length) {
+    throw new Error("The length of columns and keyOrder must be the same.");
+  } else if (exRange[0] <= 0) {
+    throw new Error(
+      "Start index of expandable range needs to be greater than 0."
+    );
+  }
+
   // * Order the keys
   const valKeys = Object.keys(records[0]);
   const orderedValKeys: (keyof T)[] = keyOrder.filter((key) =>
@@ -60,10 +97,14 @@ export default function ExpandableTable<T extends object>({
     return expandedRange[1] - 1;
   };
 
+  // Should show Expand Button outside the cell's left border
   const cellShouldShowLeftExpandButton = (index: number) => {
     return getLastHiddenIndex() + 1 === index && isRangeValid;
   };
+
+  // Should show Expand Button right aligned to the cell's inner right border.
   const cellShouldShowRightExpandButton = (index: number) => {
+    if (!isRangeValid) return false;
     return (
       // e.g. [ 0, <1, 2, 3> ] where <1, 4> is expandedRange
       // when collapsed, the expand button should be right-aligned to the first element, marked by "*", i.e. [ 0*]
@@ -95,39 +136,21 @@ export default function ExpandableTable<T extends object>({
                   style={{ position: "relative" }}
                 >
                   {cellShouldShowLeftExpandButton(index) ? (
-                    <IconButton
-                      onClick={toggleExpanded}
-                      style={{
-                        position: "absolute",
+                    <ExpandButton
+                      toggleExpanded={toggleExpanded}
+                      isExpanded={isExpanded}
+                      additionalStyles={{
                         left: "0",
-                        top: "0",
-                        transform: "translateX(-100%)",
-                        zIndex: "2",
                       }}
-                    >
-                      {isExpanded ? (
-                        <ChevronDoubleLeft />
-                      ) : (
-                        <ChevronDoubleRight />
-                      )}
-                    </IconButton>
+                    />
                   ) : cellShouldShowRightExpandButton(index) ? (
-                    <IconButton
-                      onClick={toggleExpanded}
-                      style={{
-                        position: "absolute",
+                    <ExpandButton
+                      toggleExpanded={toggleExpanded}
+                      isExpanded={isExpanded}
+                      additionalStyles={{
                         right: "0",
-                        top: "0",
-                        transform: "translateX(-100%)",
-                        zIndex: "2",
                       }}
-                    >
-                      {isExpanded ? (
-                        <ChevronDoubleLeft />
-                      ) : (
-                        <ChevronDoubleRight />
-                      )}
-                    </IconButton>
+                    />
                   ) : null}
                   {col.label}
                 </TableCell>
@@ -153,3 +176,5 @@ export default function ExpandableTable<T extends object>({
     </TableContainer>
   );
 }
+
+export default ExpandableTable;
