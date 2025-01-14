@@ -31,7 +31,7 @@ const FileDisplayContainer = styled.div`
   flex-direction: column;
   width: 600px;
   height: 800px;
-  overflow: hidden;
+  overflow: auto;
   border: 1px solid black;
 `;
 
@@ -90,6 +90,7 @@ const FilePreview = () => {
           style={{
             display: "flex",
             flexDirection: "column",
+            gap: 8,
           }}
         >
           <div

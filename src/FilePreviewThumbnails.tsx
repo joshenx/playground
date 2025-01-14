@@ -1,4 +1,6 @@
-import IconButton from "@seaweb/coral/components/IconButton";
+import IconButton, {
+  IconButtonVariants,
+} from "@seaweb/coral/components/IconButton";
 import Upload from "@seaweb/coral/components/Upload";
 import styled from "@seaweb/coral/hoc/styled";
 import { useRef } from "react";
@@ -10,12 +12,20 @@ import PlusIcon from "@seaweb/coral/icons/Plus";
 
 const GenericFileThumbnail = styled.div<{ $selected: boolean }>`
   border-radius: 4px;
-  border: 2px solid
+  border: 1px solid
     ${({ $selected }: { $selected: boolean }) =>
       $selected ? "blue" : "transparent"};
-  margin: 4px;
   cursor: pointer;
+  overflow: hidden;
 `;
+const AddFileButton = styled(IconButton)`
+  width: 32px;
+  height: 36px;
+`;
+
+const THUMBNAIL_WIDTH = 32;
+const THUMBNAIL_HEIGHT = 36;
+
 enum FilePreviewThumbnailsDirections {
   ROW = "row",
   COLUMN = "column",
@@ -25,8 +35,6 @@ export const FilePreviewThumbnails = ({
 }: {
   direction?: FilePreviewThumbnailsDirections;
 }) => {
-  const THUMBNAIL_WIDTH = 32;
-  const THUMBNAIL_HEIGHT = 36;
   const { files, uploadProps, handleAddFiles, selectedFile, setSelectedFile } =
     useFilePreview();
 
@@ -44,7 +52,7 @@ export const FilePreviewThumbnails = ({
     inputFileRef.current.click();
   };
 
-  const handleOnClick = (file: File) => {
+  const handleThumbnailClick = (file: File) => {
     setSelectedFile(file);
   };
 
@@ -54,11 +62,12 @@ export const FilePreviewThumbnails = ({
         display: "flex",
         flexDirection: direction,
         alignItems: "center",
+        gap: 4,
       }}
     >
       {files.map((file) => (
         <GenericFileThumbnail
-          onClick={() => handleOnClick(file)}
+          onClick={() => handleThumbnailClick(file)}
           $selected={selectedFile === file}
         >
           {(() => {
@@ -87,9 +96,12 @@ export const FilePreviewThumbnails = ({
         </GenericFileThumbnail>
       ))}
 
-      <IconButton onClick={handeAddClick}>
+      <AddFileButton
+        variant={IconButtonVariants.Outlined}
+        onClick={handeAddClick}
+      >
         <PlusIcon />
-      </IconButton>
+      </AddFileButton>
       <Upload
         inputProps={{
           //@ts-expect-error coral is missing a ref attribute
