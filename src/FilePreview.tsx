@@ -2,13 +2,12 @@ import Upload, {
   BaseFile,
   UploadItemTypes,
 } from "@seaweb/coral/components/Upload";
+import styled from "@seaweb/coral/hoc/styled";
 import { FilePreviewActions } from "./FilePreviewActions";
 import FilePreviewThumbnails from "./FilePreviewThumbnails";
 import { ImgPreview } from "./ImgPreview";
 import ReactPdf from "./ReactPdf";
 import { useFilePreview } from "./contexts/useFilePreview";
-import styled from "@seaweb/coral/hoc/styled";
-import { memo } from "react";
 
 export enum FileTypes {
   Jpeg = "image/jpeg",
@@ -33,8 +32,8 @@ const FilePreview = () => {
   const hasFiles = files.length > 0;
 
   const handleOnDrop = async (
-    acceptedFiles: BaseFile[],
-    rejectedFiles: BaseFile[]
+    acceptedFiles: BaseFile[]
+    // rejectedFiles: BaseFile[]
   ) => {
     //TODO: smth with rejectedFiles
 
@@ -81,27 +80,6 @@ const FilePreview = () => {
                     case FileTypes.Pdf:
                       return (
                         <>
-                          {/* <PdfObjectContainer>
-                              <h2>{"<object/>/<iframe/>"}</h2>
-                              {
-                                <object
-                                  title="Sample PDF document"
-                                  type="application/pdf"
-                                  data={URL.createObjectURL(file)}
-                                  width="100%"
-                                  height="100%"
-                                >
-                                  Sorry, your browser doesn't support PDF preview.{" "}
-                                  <a
-                                    href={URL.createObjectURL(file)}
-                                    download={file.name}
-                                  >
-                                    Download
-                                  </a>
-                                </object>
-                              }
-                            </PdfObjectContainer> */}
-                          <h2>{"<PdfJs/>"}</h2>
                           {<ReactPdf src={selectedFile} />}
                           {/* {files.length > 0 && <PdfJs src={URL.createObjectURL(files[0])} />} */}
                         </>
@@ -128,25 +106,8 @@ const FilePreview = () => {
           {...uploadProps}
         />
       )}
-
-      {/* <PdfObjectContainer>
-        <h2>{"<iframe/>"}</h2>
-        {files.length > 0 && (
-          <iframe
-            title="Sample PDF document"
-            src={URL.createObjectURL(files[0])}
-            width="100%"
-            height="100%"
-          >
-            Sorry, your browser doesn't support PDF preview.{" "}
-            <a href={URL.createObjectURL(files[0])} download={files[0].name}>
-              Download
-            </a>
-          </iframe>
-        )}
-      </PdfObjectContainer> */}
     </div>
   );
 };
 
-export default memo(FilePreview);
+export default FilePreview;

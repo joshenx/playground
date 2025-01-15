@@ -3,12 +3,12 @@ import IconButton, {
 } from "@seaweb/coral/components/IconButton";
 import Upload from "@seaweb/coral/components/Upload";
 import styled, { css } from "@seaweb/coral/hoc/styled";
-import { memo, useRef } from "react";
+import PlusIcon from "@seaweb/coral/icons/Plus";
+import { useRef } from "react";
 import { FileTypes } from "./FilePreview";
 import ImgPreviewThumbnail from "./ImgPreviewThumbnail";
 import PdfPreviewThumbnail from "./PdfPreviewThumbnail";
 import { useFilePreview } from "./contexts/useFilePreview";
-import PlusIcon from "@seaweb/coral/icons/Plus";
 
 const GenericFileThumbnail = styled.div<{ $selected: boolean }>`
   position: relative;
@@ -79,8 +79,9 @@ const FilePreviewThumbnails = ({
         gap: 4,
       }}
     >
-      {files.map((file) => (
+      {files.map((file, index) => (
         <GenericFileThumbnail
+          key={index}
           onClick={() => handleThumbnailClick(file)}
           $selected={selectedFile === file}
         >
@@ -135,4 +136,4 @@ const FilePreviewThumbnails = ({
   );
 };
 
-export default memo(FilePreviewThumbnails);
+export default FilePreviewThumbnails;

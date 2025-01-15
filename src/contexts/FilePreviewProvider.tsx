@@ -132,19 +132,17 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
    * @param {File[]} newFiles - The new files to add.
    */
   const handleAddFiles = (newFiles: File[]) => {
-    setFiles([
-      ...files,
-      ...newFiles.map((file) => {
-        return {
-          file,
-          scale: DEFAULT_SCALE,
-          rotation: DEFAULT_ROTATION,
-        };
-      }),
-    ]);
+    saveTransformProperties(selectedFile);
+
+    const newFilesWithTx: TransformedFile[] = newFiles.map((file) => ({
+      file,
+      scale: DEFAULT_SCALE,
+      rotation: DEFAULT_ROTATION,
+    }));
+    setFiles([...files, ...newFilesWithTx]);
 
     // set selected as last newly added file
-    setSelectedFile(files[newFiles.length - 1]);
+    setSelectedFile(newFilesWithTx[newFilesWithTx.length - 1]);
   };
 
   /**
@@ -176,6 +174,15 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
+  /**
+   * Saves the transform properties (scale and rotation) of a file.
+   *
+   * @example in Claim, we save the properties before changing to a different selection, so that
+   * when we click back to it, it's old properties are saved.
+   *
+   * @param fileWithNewTx
+   * @returns
+   */
   const saveTransformProperties = (fileWithNewTx: TransformedFile | null) => {
     if (!fileWithNewTx) return;
     const updatedFiles = files.map((file) =>
