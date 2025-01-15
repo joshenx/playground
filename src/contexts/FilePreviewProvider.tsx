@@ -6,8 +6,9 @@ interface FilePreviewContextProps {
   handleInitFiles: (files: File[]) => void;
   DEFAULT_SCALE: number;
   DEFAULT_ROTATION: number;
+  selectedIndex: number;
+  setSelectedIndex: React.Dispatch<React.SetStateAction<number>>;
   selectedFile: File | null;
-  setSelectedFile: (file: File) => void;
   scale: number;
   rotation: number;
   resetToDefaults: () => void;
@@ -16,6 +17,7 @@ interface FilePreviewContextProps {
   handleRotationChange: (newRotation: number) => void;
   handleAddFiles: (newFiles: File[]) => void;
   handleDelete: (file: File) => void;
+  getIndexOfFile: (file: File) => number;
   uploadProps: object;
 }
 
@@ -34,9 +36,7 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
   const DEFAULT_SCALE = 1;
   const DEFAULT_ROTATION = 0;
 
-  const [selectedFile, setSelectedFile] = useState<TransformedFile | null>(
-    null
-  );
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   /**
    * Downloads the specified file.
@@ -78,7 +78,8 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
     });
 
     setFiles(filesToInit);
-    setSelectedFile(filesToInit[0]);
+
+    setSelectedIndex(0);
   };
 
   /**
@@ -86,16 +87,14 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
    * @param {File} file - The file to delete.
    */
   const handleDelete = (file: File) => {
-    const indexToDelete = files.findIndex((target) => target.file === file);
+    const indexToDelete = getIndexOfFile(file);
 
-    console.log(files);
-    console.log(
-      files[indexToDelete - 1]?.file ?? files[indexToDelete + 1]?.file
-    );
+    if (indexToDelete < 0) {
+      console.warn("No file to delete found!");
+    }
+
     // set selected as next-in-order
-    handleSelectFile(
-      files[indexToDelete - 1]?.file ?? files[indexToDelete + 1]?.file
-    );
+    setSelectedIndex(indexToDelete - 1 < 0 ? indexToDelete : indexToDelete - 1);
 
     // delete file
     setFiles(files.filter((_, index) => index !== indexToDelete));
@@ -106,12 +105,17 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
    * @param {number} newScale - The new scale value.
    */
   const handleScaleChange = (newScale: number) => {
-    if (!selectedFile) return;
-    setSelectedFile({
-      file: selectedFile.file,
-      scale: newScale,
-      rotation: selectedFile.rotation,
-    });
+    setFiles(
+      files.map((f, index) => {
+        if (index === selectedIndex) {
+          return {
+            ...f,
+            scale: newScale,
+          };
+        }
+        return f;
+      })
+    );
   };
 
   /**
@@ -119,12 +123,17 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
    * @param {number} newRotation - The new rotation value.
    */
   const handleRotationChange = (newRotation: number) => {
-    if (!selectedFile) return;
-    setSelectedFile({
-      file: selectedFile.file,
-      scale: selectedFile.scale,
-      rotation: newRotation,
-    });
+    setFiles(
+      files.map((f, index) => {
+        if (index === selectedIndex) {
+          return {
+            ...f,
+            rotation: newRotation,
+          };
+        }
+        return f;
+      })
+    );
   };
 
   /**
@@ -132,63 +141,39 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
    * @param {File[]} newFiles - The new files to add.
    */
   const handleAddFiles = (newFiles: File[]) => {
-    saveTransformProperties(selectedFile);
-
     const newFilesWithTx: TransformedFile[] = newFiles.map((file) => ({
       file,
       scale: DEFAULT_SCALE,
       rotation: DEFAULT_ROTATION,
     }));
-    setFiles([...files, ...newFilesWithTx]);
+    const totalFiles = [...files, ...newFilesWithTx];
+    setFiles(totalFiles);
 
     // set selected as last newly added file
-    setSelectedFile(newFilesWithTx[newFilesWithTx.length - 1]);
+    setSelectedIndex(totalFiles.length - 1);
   };
 
-  /**
-   * Changes the currently selected file.
-   * @param {File} file - The file to select.
-   */
-  const onFileChange = (file: File) => {
-    saveTransformProperties(selectedFile);
-    handleSelectFile(file);
-  };
-
-  const handleSelectFile = (file: File) => {
-    const newSelectedFile = files.find((f) => f.file === file);
-    if (!newSelectedFile) return;
-
-    setSelectedFile(newSelectedFile);
+  const getIndexOfFile = (file: File) => {
+    console.log(files);
+    return files.findIndex((f) => f.file.name === file.name);
   };
 
   /**
    * Resets the scale and rotation to their default values.
    */
   const resetToDefaults = () => {
-    if (!selectedFile) return;
-    console.log("Resetting to transform defaults");
-    setSelectedFile({
-      file: selectedFile.file,
-      scale: DEFAULT_SCALE,
-      rotation: DEFAULT_ROTATION,
-    });
-  };
-
-  /**
-   * Saves the transform properties (scale and rotation) of a file.
-   *
-   * @example in Claim, we save the properties before changing to a different selection, so that
-   * when we click back to it, it's old properties are saved.
-   *
-   * @param fileWithNewTx
-   * @returns
-   */
-  const saveTransformProperties = (fileWithNewTx: TransformedFile | null) => {
-    if (!fileWithNewTx) return;
-    const updatedFiles = files.map((file) =>
-      file.file === fileWithNewTx.file ? fileWithNewTx : file
+    setFiles(
+      files.map((f, index) => {
+        if (index === selectedIndex) {
+          return {
+            ...f,
+            scale: DEFAULT_SCALE,
+            rotation: DEFAULT_ROTATION,
+          };
+        }
+        return f;
+      })
     );
-    setFiles(updatedFiles);
   };
 
   /**
@@ -211,11 +196,16 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
         handleInitFiles,
         DEFAULT_SCALE,
         DEFAULT_ROTATION,
-        setSelectedFile: onFileChange,
-
-        selectedFile: selectedFile ? selectedFile.file : null,
-        scale: selectedFile ? selectedFile.scale : DEFAULT_SCALE,
-        rotation: selectedFile ? selectedFile.rotation : DEFAULT_ROTATION,
+        getIndexOfFile,
+        selectedIndex,
+        setSelectedIndex,
+        selectedFile: files[selectedIndex]?.file,
+        scale: files[selectedIndex]
+          ? files[selectedIndex].scale
+          : DEFAULT_SCALE,
+        rotation: files[selectedIndex]
+          ? files[selectedIndex].rotation
+          : DEFAULT_ROTATION,
         resetToDefaults,
         handleDownload,
         handleScaleChange,

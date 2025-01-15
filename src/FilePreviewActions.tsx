@@ -1,4 +1,6 @@
-import IconButton, { IconButtonVariants } from "@seaweb/coral/components/IconButton";
+import IconButton, {
+  IconButtonVariants,
+} from "@seaweb/coral/components/IconButton";
 import InputGroup from "@seaweb/coral/components/InputGroup";
 import { useFilePreview } from "./contexts/useFilePreview";
 import ZoomOutIcon from "@seaweb/coral/icons/ZoomOut";
@@ -9,7 +11,8 @@ import DownloadIcon from "@seaweb/coral/icons/Download";
 import DeleteIcon from "@seaweb/coral/icons/Delete";
 export const FilePreviewActions = () => {
   const {
-    selectedFile,
+    files,
+    selectedIndex,
     resetToDefaults,
     scale,
     rotation,
@@ -27,14 +30,21 @@ export const FilePreviewActions = () => {
       onClick: () => handleRotationChange(rotation + 90),
       icon: <RotateIcon />,
     },
-    { onClick: () => handleDownload(selectedFile!), icon: <DownloadIcon /> },
-    { onClick: () => handleDelete(selectedFile!), icon: <DeleteIcon /> },
+    {
+      onClick: () => handleDownload(files[selectedIndex]),
+      icon: <DownloadIcon />,
+    },
+    { onClick: () => handleDelete(files[selectedIndex]), icon: <DeleteIcon /> },
   ];
 
   return (
     <InputGroup>
       {actions.map((action, index) => (
-        <IconButton variant={IconButtonVariants.Outlined} key={index} onClick={action.onClick}>
+        <IconButton
+          variant={IconButtonVariants.Outlined}
+          key={index}
+          onClick={action.onClick}
+        >
           {action.icon}
         </IconButton>
       ))}

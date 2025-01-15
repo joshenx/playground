@@ -1,6 +1,7 @@
 import IconButton, {
   IconButtonVariants,
 } from "@seaweb/coral/components/IconButton";
+import { Tab, TabList, TabVariants } from "@seaweb/coral/components/Tabs";
 import Upload from "@seaweb/coral/components/Upload";
 import styled, { css } from "@seaweb/coral/hoc/styled";
 import PlusIcon from "@seaweb/coral/icons/Plus";
@@ -9,7 +10,6 @@ import { FileTypes } from "./FilePreview";
 import ImgPreviewThumbnail from "./ImgPreviewThumbnail";
 import PdfPreviewThumbnail from "./PdfPreviewThumbnail";
 import { useFilePreview } from "./contexts/useFilePreview";
-
 const GenericFileThumbnail = styled.div<{ $selected: boolean }>`
   position: relative;
   border-radius: 4px;
@@ -36,6 +36,15 @@ const AddFileButton = styled(IconButton)`
   width: ${({ $width }: { $width: number }) => $width}px;
   height: ${({ $height }: { $height: number }) => $height}px;
 `;
+const StyledTabList = styled(TabList)`
+  gap: 4px;
+`;
+const StyledTab = styled(Tab)`
+  padding: 0;
+  &:not(:last-child)::after {
+    height: 0;
+  }
+`;
 
 const THUMBNAIL_WIDTH = 32;
 const THUMBNAIL_HEIGHT = 36;
@@ -49,8 +58,13 @@ const FilePreviewThumbnails = ({
 }: {
   direction?: FilePreviewThumbnailsDirections;
 }) => {
-  const { files, uploadProps, handleAddFiles, selectedFile, setSelectedFile } =
-    useFilePreview();
+  const {
+    files,
+    uploadProps,
+    handleAddFiles,
+    selectedIndex,
+    setSelectedIndex,
+  } = useFilePreview();
 
   const inputFileRef = useRef<HTMLInputElement>();
   const onFileChangeCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,8 +80,8 @@ const FilePreviewThumbnails = ({
     inputFileRef.current.click();
   };
 
-  const handleThumbnailClick = (file: File) => {
-    setSelectedFile(file);
+  const handleThumbnailClick = (idx: number) => {
+    setSelectedIndex(idx);
   };
 
   return (
@@ -79,37 +93,44 @@ const FilePreviewThumbnails = ({
         gap: 4,
       }}
     >
-      {files.map((file, index) => (
-        <GenericFileThumbnail
-          key={index}
-          onClick={() => handleThumbnailClick(file)}
-          $selected={selectedFile === file}
-        >
-          {(() => {
-            switch (file.type) {
-              case FileTypes.Jpeg:
-              case FileTypes.Png:
-                return (
-                  <ImgPreviewThumbnail
-                    file={file}
-                    height={THUMBNAIL_HEIGHT}
-                    width={THUMBNAIL_WIDTH}
-                  />
-                );
-              case FileTypes.Pdf:
-                return (
-                  <PdfPreviewThumbnail
-                    file={file}
-                    height={THUMBNAIL_HEIGHT}
-                    width={THUMBNAIL_WIDTH}
-                  />
-                );
-              default:
-                return null;
-            }
-          })()}
-        </GenericFileThumbnail>
-      ))}
+      <StyledTabList
+        variant={TabVariants.Text}
+        wrapperProps={{ style: { overflow: "visible" } }}
+      >
+        {files.map((file, index) => (
+          <StyledTab>
+            <GenericFileThumbnail
+              key={index}
+              onClick={() => handleThumbnailClick(index)}
+              $selected={selectedIndex === index}
+            >
+              {(() => {
+                switch (file.type) {
+                  case FileTypes.Jpeg:
+                  case FileTypes.Png:
+                    return (
+                      <ImgPreviewThumbnail
+                        file={file}
+                        height={THUMBNAIL_HEIGHT}
+                        width={THUMBNAIL_WIDTH}
+                      />
+                    );
+                  case FileTypes.Pdf:
+                    return (
+                      <PdfPreviewThumbnail
+                        file={file}
+                        height={THUMBNAIL_HEIGHT}
+                        width={THUMBNAIL_WIDTH}
+                      />
+                    );
+                  default:
+                    return null;
+                }
+              })()}
+            </GenericFileThumbnail>
+          </StyledTab>
+        ))}
+      </StyledTabList>
 
       <AddFileButton
         variant={IconButtonVariants.Outlined}

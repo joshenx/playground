@@ -1,3 +1,4 @@
+import Tabs, { TabPanel, TabPanels } from "@seaweb/coral/components/Tabs";
 import Upload, {
   BaseFile,
   UploadItemTypes,
@@ -14,12 +15,21 @@ export enum FileTypes {
   Png = "image/png",
   Pdf = "application/pdf",
 }
-const FileDisplayContainer = styled.div`
+const FileDisplayContainer = styled(TabPanel)`
   display: flex;
   flex-direction: column;
   height: 100%;
   overflow: auto;
   border: 1px solid black;
+`;
+const FilePanels = styled(TabPanels)`
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+
+  > * {
+    height: 100%;
+  }
 `;
 const FullSizeUpload = styled(Upload)`
   height: 100%;
@@ -27,7 +37,7 @@ const FullSizeUpload = styled(Upload)`
 `;
 
 const FilePreview = () => {
-  const { files, selectedFile, handleInitFiles, uploadProps } =
+  const { files, selectedIndex, handleInitFiles, uploadProps } =
     useFilePreview();
   const hasFiles = files.length > 0;
 
@@ -45,7 +55,8 @@ const FilePreview = () => {
   };
 
   return (
-    <div
+    <Tabs
+      index={selectedIndex}
       style={{
         width: "600px",
         height: "800px",
@@ -60,36 +71,29 @@ const FilePreview = () => {
             height: "100%",
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              flexGrow: 1,
-              overflow: "auto",
-            }}
-          >
-            <FileDisplayContainer>
-              {selectedFile &&
-                (() => {
-                  switch (selectedFile.type) {
-                    case FileTypes.Jpeg:
-                    case FileTypes.Png:
-                      return (
-                        <ImgPreview src={URL.createObjectURL(selectedFile)} />
-                      );
-                    case FileTypes.Pdf:
-                      return (
-                        <>
-                          {<ReactPdf src={selectedFile} />}
-                          {/* {files.length > 0 && <PdfJs src={URL.createObjectURL(files[0])} />} */}
-                        </>
-                      );
-                    default:
-                      return null;
-                  }
-                })()}
-            </FileDisplayContainer>
-          </div>
+          <FilePanels>
+            {files.map((f) => (
+              <FileDisplayContainer>
+                {f &&
+                  (() => {
+                    switch (f.type) {
+                      case FileTypes.Jpeg:
+                      case FileTypes.Png:
+                        return <ImgPreview src={URL.createObjectURL(f)} />;
+                      case FileTypes.Pdf:
+                        return (
+                          <>
+                            {<ReactPdf src={f} />}
+                            {/* {files.length > 0 && <PdfJs src={URL.createObjectURL(files[0])} />} */}
+                          </>
+                        );
+                      default:
+                        return null;
+                    }
+                  })()}
+              </FileDisplayContainer>
+            ))}
+          </FilePanels>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <FilePreviewThumbnails />
             <FilePreviewActions />
@@ -106,7 +110,7 @@ const FilePreview = () => {
           {...uploadProps}
         />
       )}
-    </div>
+    </Tabs>
   );
 };
 

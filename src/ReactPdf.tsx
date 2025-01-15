@@ -43,6 +43,8 @@ const ReactPdf: React.FC<PdfProps> = ({ src }) => {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
+        height: "100%",
+        width: "100%",
       }}
     >
       <InputGroup>
