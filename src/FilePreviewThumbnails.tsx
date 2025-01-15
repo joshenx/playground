@@ -5,11 +5,10 @@ import { Tab, TabList, TabVariants } from "@seaweb/coral/components/Tabs";
 import Upload from "@seaweb/coral/components/Upload";
 import styled, { css } from "@seaweb/coral/hoc/styled";
 import PlusIcon from "@seaweb/coral/icons/Plus";
-import { useRef } from "react";
 import { FileTypes } from "./FilePreview";
 import ImgPreviewThumbnail from "./ImgPreviewThumbnail";
 import PdfPreviewThumbnail from "./PdfPreviewThumbnail";
-import { useFilePreview } from "./contexts/useFilePreview";
+import { useAddFiles, useFilePreview } from "./contexts/useFilePreview";
 const GenericFileThumbnail = styled.div<{ $selected: boolean }>`
   position: relative;
   border-radius: 4px;
@@ -58,27 +57,7 @@ const FilePreviewThumbnails = ({
 }: {
   direction?: FilePreviewThumbnailsDirections;
 }) => {
-  const {
-    files,
-    uploadProps,
-    handleAddFiles,
-    selectedIndex,
-    setSelectedIndex,
-  } = useFilePreview();
-
-  const inputFileRef = useRef<HTMLInputElement>();
-  const onFileChangeCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newFiles = e.target.files;
-    if (!newFiles) return;
-
-    const filesArray = Array.from(newFiles);
-    handleAddFiles(filesArray);
-  };
-
-  const handeAddClick = () => {
-    if (!inputFileRef?.current) return;
-    inputFileRef.current.click();
-  };
+  const { files, selectedIndex, setSelectedIndex } = useFilePreview();
 
   const handleThumbnailClick = (idx: number) => {
     setSelectedIndex(idx);
@@ -131,10 +110,21 @@ const FilePreviewThumbnails = ({
           </StyledTab>
         ))}
       </StyledTabList>
+      <AddFileThumbnailButton />
+    </div>
+  );
+};
 
+const AddFileThumbnailButton = () => {
+  const { uploadProps } = useFilePreview();
+
+  const { inputFileRef, onFileChangeCapture, handleAddClick } = useAddFiles();
+
+  return (
+    <>
       <AddFileButton
         variant={IconButtonVariants.Outlined}
-        onClick={handeAddClick}
+        onClick={handleAddClick}
         $height={THUMBNAIL_HEIGHT}
         $width={THUMBNAIL_WIDTH}
       >
@@ -153,7 +143,7 @@ const FilePreviewThumbnails = ({
           display: "none",
         }}
       />
-    </div>
+    </>
   );
 };
 

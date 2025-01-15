@@ -8,7 +8,8 @@ import { FilePreviewActions } from "./FilePreviewActions";
 import FilePreviewThumbnails from "./FilePreviewThumbnails";
 import { ImgPreview } from "./ImgPreview";
 import ReactPdf from "./ReactPdf";
-import { useFilePreview } from "./contexts/useFilePreview";
+import { useAddFiles, useFilePreview } from "./contexts/useFilePreview";
+import { useDropzone } from "react-dropzone";
 
 export enum FileTypes {
   Jpeg = "image/jpeg",
@@ -22,11 +23,14 @@ const FileDisplayContainer = styled(TabPanel)`
   overflow: auto;
   border: 1px solid black;
 `;
-const FilePanels = styled(TabPanels)`
+const FileDisplayWrapper = styled.div`
+  // position is relative so that the AddFileDropzone can be positioned absolutely
+  position: relative;
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-
+`;
+const FilePanels = styled(TabPanels)`
   > * {
     height: 100%;
   }
@@ -60,6 +64,7 @@ const FilePreview = () => {
       style={{
         width: "600px",
         height: "800px",
+        position: "relative",
       }}
     >
       {hasFiles ? (
@@ -71,29 +76,32 @@ const FilePreview = () => {
             height: "100%",
           }}
         >
-          <FilePanels>
-            {files.map((f) => (
-              <FileDisplayContainer>
-                {f &&
-                  (() => {
-                    switch (f.type) {
-                      case FileTypes.Jpeg:
-                      case FileTypes.Png:
-                        return <ImgPreview src={URL.createObjectURL(f)} />;
-                      case FileTypes.Pdf:
-                        return (
-                          <>
-                            {<ReactPdf src={f} />}
-                            {/* {files.length > 0 && <PdfJs src={URL.createObjectURL(files[0])} />} */}
-                          </>
-                        );
-                      default:
-                        return null;
-                    }
-                  })()}
-              </FileDisplayContainer>
-            ))}
-          </FilePanels>
+          <FileDisplayWrapper>
+            <AddFileDropzone />
+            <FilePanels>
+              {files.map((f) => (
+                <FileDisplayContainer>
+                  {f &&
+                    (() => {
+                      switch (f.type) {
+                        case FileTypes.Jpeg:
+                        case FileTypes.Png:
+                          return <ImgPreview src={URL.createObjectURL(f)} />;
+                        case FileTypes.Pdf:
+                          return (
+                            <>
+                              {<ReactPdf src={f} />}
+                              {/* {files.length > 0 && <PdfJs src={URL.createObjectURL(files[0])} />} */}
+                            </>
+                          );
+                        default:
+                          return null;
+                      }
+                    })()}
+                </FileDisplayContainer>
+              ))}
+            </FilePanels>
+          </FileDisplayWrapper>
           <div style={{ display: "flex", justifyContent: "space-between" }}>
             <FilePreviewThumbnails />
             <FilePreviewActions />
@@ -111,6 +119,50 @@ const FilePreview = () => {
         />
       )}
     </Tabs>
+  );
+};
+
+const AddFileDropzone = () => {
+  const { uploadProps } = useFilePreview();
+
+  const { addFiles } = useAddFiles();
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    ...uploadProps,
+    accept: {
+      "image/*": [".jpg", ".jpeg", ".png"],
+      "application/pdf": [".pdf"],
+    },
+    multiple: true,
+    onDrop: (acceptedFiles) => {
+      addFiles([...acceptedFiles]);
+    },
+    noClick: true,
+  });
+
+  return (
+    <div
+      {...getRootProps({ className: "dropzone" })}
+      style={{
+        position: "absolute",
+        top: 0,
+        left: 0,
+        height: "100%",
+        width: "100%",
+        zIndex: 2,
+
+        transition: "background-color 0.3s",
+        opacity: 0.2,
+        ...(isDragActive && { backgroundColor: "black" }),
+      }}
+    >
+      <input {...getInputProps()} />
+      <p>
+        Drag 'n' drop some files here
+        {`IS DRAG ACTIVE: ${isDragActive}`}
+      </p>
+      <em>(Only *.jpeg and *.png images will be accepted)</em>
+    </div>
   );
 };
 

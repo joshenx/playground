@@ -18,7 +18,11 @@ interface FilePreviewContextProps {
   handleAddFiles: (newFiles: File[]) => void;
   handleDelete: (file: File) => void;
   getIndexOfFile: (file: File) => number;
-  uploadProps: object;
+  uploadProps: {
+    accept: string[];
+    maxSize: number;
+    files: File[];
+  };
 }
 
 type TransformedFile = {
