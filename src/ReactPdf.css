@@ -5,8 +5,7 @@
 }
 
 .react-pdf__Page {
-  &.pdf-preview-thumbnail > .react-pdf__Page__canvas,
-  .react-pdf__Page__textContent {
+  &.pdf-preview-thumbnail > .react-pdf__Page__canvas {
     height: 100% !important;
     width: 100% !important;
   }

@@ -55,7 +55,7 @@ const ReactPdf: React.FC<PdfProps> = ({ src }) => {
       </InputGroup>
       <div
         style={{
-          height: "700px",
+          height: "100%",
           width: "100%",
           overflow: "auto",
         }}
@@ -66,6 +66,7 @@ const ReactPdf: React.FC<PdfProps> = ({ src }) => {
           onLoadSuccess={onDocumentLoadSuccess}
         >
           <Page
+            renderAnnotationLayer={false}
             pageNumber={currentPage}
             scale={scale}
             rotate={rotation}

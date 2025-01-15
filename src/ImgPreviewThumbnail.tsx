@@ -1,4 +1,5 @@
 import styled from "@seaweb/coral/hoc/styled";
+import { memo } from "react";
 
 const ImgThumbnailWrapper = styled.div<{ $height: number; $width: number }>`
   display: flex;
@@ -8,7 +9,7 @@ const ImgThumbnailWrapper = styled.div<{ $height: number; $width: number }>`
   width: ${({ $width }: { $width: number }) => `${$width}`}px;
   overflow: hidden;
   img {
-    object-fit: contain;
+    object-fit: cover;
     width: 100%;
     height: 100%;
   }
@@ -35,4 +36,4 @@ const ImgPreviewThumbnail = ({
   );
 };
 
-export default ImgPreviewThumbnail;
+export default memo(ImgPreviewThumbnail);

@@ -2,25 +2,39 @@ import IconButton, {
   IconButtonVariants,
 } from "@seaweb/coral/components/IconButton";
 import Upload from "@seaweb/coral/components/Upload";
-import styled from "@seaweb/coral/hoc/styled";
-import { useRef } from "react";
-import { FileTypes } from "./App";
+import styled, { css } from "@seaweb/coral/hoc/styled";
+import { memo, useRef } from "react";
+import { FileTypes } from "./FilePreview";
 import ImgPreviewThumbnail from "./ImgPreviewThumbnail";
 import PdfPreviewThumbnail from "./PdfPreviewThumbnail";
 import { useFilePreview } from "./contexts/useFilePreview";
 import PlusIcon from "@seaweb/coral/icons/Plus";
 
 const GenericFileThumbnail = styled.div<{ $selected: boolean }>`
+  position: relative;
   border-radius: 4px;
   border: 1px solid
     ${({ $selected }: { $selected: boolean }) =>
       $selected ? "blue" : "transparent"};
   cursor: pointer;
   overflow: hidden;
+  ${({ $selected }: { $selected: boolean }) =>
+    !$selected &&
+    css`
+      &::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+      }
+    `}
 `;
 const AddFileButton = styled(IconButton)`
-  width: 32px;
-  height: 36px;
+  width: ${({ $width }: { $width: number }) => $width}px;
+  height: ${({ $height }: { $height: number }) => $height}px;
 `;
 
 const THUMBNAIL_WIDTH = 32;
@@ -30,7 +44,7 @@ enum FilePreviewThumbnailsDirections {
   ROW = "row",
   COLUMN = "column",
 }
-export const FilePreviewThumbnails = ({
+const FilePreviewThumbnails = ({
   direction = FilePreviewThumbnailsDirections.ROW,
 }: {
   direction?: FilePreviewThumbnailsDirections;
@@ -99,6 +113,8 @@ export const FilePreviewThumbnails = ({
       <AddFileButton
         variant={IconButtonVariants.Outlined}
         onClick={handeAddClick}
+        $height={THUMBNAIL_HEIGHT}
+        $width={THUMBNAIL_WIDTH}
       >
         <PlusIcon />
       </AddFileButton>
@@ -118,3 +134,5 @@ export const FilePreviewThumbnails = ({
     </div>
   );
 };
+
+export default memo(FilePreviewThumbnails);

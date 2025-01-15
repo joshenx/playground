@@ -1,5 +1,5 @@
 import { ReactNode, createContext, useState } from "react";
-import { FileTypes } from "../App";
+import { FileTypes } from "../FilePreview";
 
 interface FilePreviewContextProps {
   files: File[];
@@ -19,19 +19,24 @@ interface FilePreviewContextProps {
   uploadProps: object;
 }
 
+type TransformedFile = {
+  file: File;
+  scale: number;
+  rotation: number;
+};
+
 const FilePreviewContext = createContext<FilePreviewContextProps | undefined>(
   undefined
 );
 
 export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
-  const [files, setFiles] = useState<File[]>([]);
+  const [files, setFiles] = useState<TransformedFile[]>([]);
   const DEFAULT_SCALE = 1;
   const DEFAULT_ROTATION = 0;
 
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
-
-  const [scale, setScale] = useState(DEFAULT_SCALE);
-  const [rotation, setRotation] = useState(DEFAULT_ROTATION);
+  const [selectedFile, setSelectedFile] = useState<TransformedFile | null>(
+    null
+  );
 
   /**
    * Downloads the specified file.
@@ -64,8 +69,16 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
   const handleInitFiles = (files: File[]) => {
     if (files.length <= 0) return;
 
-    setFiles(files);
-    setSelectedFile(files[0]);
+    const filesToInit = files.map((file) => {
+      return {
+        file,
+        scale: DEFAULT_SCALE,
+        rotation: DEFAULT_ROTATION,
+      };
+    });
+
+    setFiles(filesToInit);
+    setSelectedFile(filesToInit[0]);
   };
 
   /**
@@ -73,10 +86,16 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
    * @param {File} file - The file to delete.
    */
   const handleDelete = (file: File) => {
-    const indexToDelete = files.findIndex((target) => target === file);
+    const indexToDelete = files.findIndex((target) => target.file === file);
 
+    console.log(files);
+    console.log(
+      files[indexToDelete - 1]?.file ?? files[indexToDelete + 1]?.file
+    );
     // set selected as next-in-order
-    setSelectedFile(files[indexToDelete - 1]);
+    handleSelectFile(
+      files[indexToDelete - 1]?.file ?? files[indexToDelete + 1]?.file
+    );
 
     // delete file
     setFiles(files.filter((_, index) => index !== indexToDelete));
@@ -87,7 +106,12 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
    * @param {number} newScale - The new scale value.
    */
   const handleScaleChange = (newScale: number) => {
-    setScale(newScale);
+    if (!selectedFile) return;
+    setSelectedFile({
+      file: selectedFile.file,
+      scale: newScale,
+      rotation: selectedFile.rotation,
+    });
   };
 
   /**
@@ -95,7 +119,12 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
    * @param {number} newRotation - The new rotation value.
    */
   const handleRotationChange = (newRotation: number) => {
-    setRotation(newRotation);
+    if (!selectedFile) return;
+    setSelectedFile({
+      file: selectedFile.file,
+      scale: selectedFile.scale,
+      rotation: newRotation,
+    });
   };
 
   /**
@@ -103,10 +132,19 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
    * @param {File[]} newFiles - The new files to add.
    */
   const handleAddFiles = (newFiles: File[]) => {
-    setFiles([...files, ...newFiles]);
+    setFiles([
+      ...files,
+      ...newFiles.map((file) => {
+        return {
+          file,
+          scale: DEFAULT_SCALE,
+          rotation: DEFAULT_ROTATION,
+        };
+      }),
+    ]);
 
     // set selected as last newly added file
-    setSelectedFile(newFiles[newFiles.length - 1]);
+    setSelectedFile(files[newFiles.length - 1]);
   };
 
   /**
@@ -114,17 +152,36 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
    * @param {File} file - The file to select.
    */
   const onFileChange = (file: File) => {
-    setSelectedFile(file);
-    resetToDefaults();
+    saveTransformProperties(selectedFile);
+    handleSelectFile(file);
+  };
+
+  const handleSelectFile = (file: File) => {
+    const newSelectedFile = files.find((f) => f.file === file);
+    if (!newSelectedFile) return;
+
+    setSelectedFile(newSelectedFile);
   };
 
   /**
    * Resets the scale and rotation to their default values.
    */
   const resetToDefaults = () => {
-    console.log("Resetting to defaults");
-    setScale(DEFAULT_SCALE);
-    setRotation(DEFAULT_ROTATION);
+    if (!selectedFile) return;
+    console.log("Resetting to transform defaults");
+    setSelectedFile({
+      file: selectedFile.file,
+      scale: DEFAULT_SCALE,
+      rotation: DEFAULT_ROTATION,
+    });
+  };
+
+  const saveTransformProperties = (fileWithNewTx: TransformedFile | null) => {
+    if (!fileWithNewTx) return;
+    const updatedFiles = files.map((file) =>
+      file.file === fileWithNewTx.file ? fileWithNewTx : file
+    );
+    setFiles(updatedFiles);
   };
 
   /**
@@ -137,26 +194,27 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
   const uploadProps = {
     accept: ALLOWED_FILE_EXTENSIONS,
     maxSize: MAX_FILESIZE_ALLOWED * MB,
-    files: files,
+    files: files.map((file) => file.file),
   };
 
   return (
     <FilePreviewContext.Provider
       value={{
-        files,
+        files: files.map((file) => file.file),
         handleInitFiles,
         DEFAULT_SCALE,
         DEFAULT_ROTATION,
-        scale,
-        rotation,
+        setSelectedFile: onFileChange,
+
+        selectedFile: selectedFile ? selectedFile.file : null,
+        scale: selectedFile ? selectedFile.scale : DEFAULT_SCALE,
+        rotation: selectedFile ? selectedFile.rotation : DEFAULT_ROTATION,
         resetToDefaults,
         handleDownload,
         handleScaleChange,
         handleRotationChange,
         handleAddFiles,
         handleDelete,
-        selectedFile,
-        setSelectedFile: onFileChange,
         uploadProps,
       }}
     >
