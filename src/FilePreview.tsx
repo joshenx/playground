@@ -4,12 +4,12 @@ import Upload, {
   UploadItemTypes,
 } from "@seaweb/coral/components/Upload";
 import styled from "@seaweb/coral/hoc/styled";
+import { useDropzone } from "react-dropzone";
 import { FilePreviewActions } from "./FilePreviewActions";
 import FilePreviewThumbnails from "./FilePreviewThumbnails";
 import { ImgPreview } from "./ImgPreview";
 import ReactPdf from "./ReactPdf";
 import { useAddFiles, useFilePreview } from "./contexts/useFilePreview";
-import { useDropzone } from "react-dropzone";
 
 export enum FileTypes {
   Jpeg = "image/jpeg",
@@ -28,7 +28,26 @@ const FileDisplayWrapper = styled.div`
   position: relative;
   display: flex;
   flex-direction: column;
-  flex-grow: 1;
+  height: calc(100% - 44px);
+  z-index: 1;
+
+  // render a gray overlay when dragging files into this dropzone
+  &::after {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    transition: all 0.3s ease;
+    ${({ $isDragActive }: { $isDragActive: boolean }) =>
+      $isDragActive
+        ? `background-color: rgba(0, 0, 0, 0.2);`
+        : `background-color: rgba(0, 0, 0, 0);`}
+
+    z-index: 2;
+    content: "";
+    pointer-events: none;
+  }
 `;
 const FilePanels = styled(TabPanels)`
   > * {
@@ -58,26 +77,44 @@ const FilePreview = () => {
     handleInitFiles(newFiles);
   };
 
+  const { addFiles } = useAddFiles();
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    ...uploadProps,
+    accept: {
+      "image/*": [".jpg", ".jpeg", ".png"],
+      "application/pdf": [".pdf"],
+    },
+    multiple: true,
+    onDrop: (acceptedFiles) => {
+      addFiles([...acceptedFiles]);
+    },
+    noClick: true,
+  });
+
   return (
     <Tabs
       index={selectedIndex}
       style={{
         width: "600px",
         height: "800px",
-        position: "relative",
       }}
     >
       {hasFiles ? (
         <div
           style={{
+            position: "relative",
             display: "flex",
             flexDirection: "column",
             gap: 8,
             height: "100%",
           }}
         >
-          <FileDisplayWrapper>
-            <AddFileDropzone />
+          <FileDisplayWrapper
+            {...getRootProps({ className: "dropzone" })}
+            $isDragActive={isDragActive}
+          >
+            <input {...getInputProps()} />
             <FilePanels>
               {files.map((f) => (
                 <FileDisplayContainer>
@@ -122,7 +159,9 @@ const FilePreview = () => {
   );
 };
 
-const AddFileDropzone = () => {
+export const AddFileDropzone = ({
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) => {
   const { uploadProps } = useFilePreview();
 
   const { addFiles } = useAddFiles();
@@ -155,13 +194,9 @@ const AddFileDropzone = () => {
         opacity: 0.2,
         ...(isDragActive && { backgroundColor: "black" }),
       }}
+      {...props}
     >
       <input {...getInputProps()} />
-      <p>
-        Drag 'n' drop some files here
-        {`IS DRAG ACTIVE: ${isDragActive}`}
-      </p>
-      <em>(Only *.jpeg and *.png images will be accepted)</em>
     </div>
   );
 };

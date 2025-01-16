@@ -73,16 +73,7 @@ export const FilePreviewProvider = ({ children }: { children: ReactNode }) => {
   const handleInitFiles = (files: File[]) => {
     if (files.length <= 0) return;
 
-    const filesToInit = files.map((file) => {
-      return {
-        file,
-        scale: DEFAULT_SCALE,
-        rotation: DEFAULT_ROTATION,
-      };
-    });
-
-    setFiles(filesToInit);
-
+    handleAddFiles(files);
     setSelectedIndex(0);
   };
 
